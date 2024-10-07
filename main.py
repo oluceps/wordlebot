@@ -56,7 +56,7 @@ letters = np.array(Image.open('letters.png'))
 empty = np.hstack([letters[:SIZE, -SIZE:]] * 5)
 letters = [[letters[i:i + SIZE, j:j + SIZE] for j in range(0, SIZE * 3, SIZE)] for i in range(0, SIZE * 26, SIZE)]
 
-with open('dict.txt') as f:
+with open('dicts/official.txt') as f:
     words = f.read()
     words = [words[i:i + 5] for i in range(0, len(words), 5)]
     words_set = set(words)

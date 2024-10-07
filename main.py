@@ -102,14 +102,16 @@ async def guess(_, message: Message):
 
     image = io.BytesIO()
     already_won = game.won
+    success = False
     if already_won:
         await message.reply('Already solved. You can play /new Wordle or /share tiles with friends.')
     else:
         game.guess(g)
+        success = game.won
     game.current_pic.save(image, format='PNG')
     image.name = "wordle.png"
     await message.reply_photo(image, quote=False)
-    if game.won and not already_won:
+    if success and not already_won:
         await message.reply("Congrats on xxxth wordle! /share or /new")
         await message.reply_sticker(FLAME_DANCE_ID, quote=False)
 

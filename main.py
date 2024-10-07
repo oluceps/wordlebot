@@ -15,6 +15,12 @@ logging.basicConfig(format='%(asctime)s [%(levelname).1s] [%(name)s] %(message)s
 logging.getLogger('pyrogram').setLevel(logging.WARNING)
 
 
+def get_words(file_name):
+    with open(f'dicts/{file_name}.txt') as f:
+        _words = f.read()
+        return [_words[i:i + 5] for i in range(0, len(_words), 5)]
+
+
 @asynccontextmanager
 async def app_group(apps: list[Client]):
     async with TaskGroup() as group:
@@ -29,8 +35,10 @@ async def app_group(apps: list[Client]):
 
 
 class Wordle:
+    guess_list = get_words('hiwordlebot')
+
     def __init__(self):
-        self.word = random.choice(words)
+        self.word = random.choice(self.guess_list)
         self._current_pic = None
         self.won = False
 
@@ -56,10 +64,7 @@ letters = np.array(Image.open('letters.png'))
 empty = np.hstack([letters[:SIZE, -SIZE:]] * 5)
 letters = [[letters[i:i + SIZE, j:j + SIZE] for j in range(0, SIZE * 3, SIZE)] for i in range(0, SIZE * 26, SIZE)]
 
-with open('dicts/official.txt') as f:
-    words = f.read()
-    words = [words[i:i + 5] for i in range(0, len(words), 5)]
-    words_set = set(words)
+valid_set = set(get_words('official'))
 
 with open('config.json') as f:
     config = json.load(f)
@@ -96,7 +101,7 @@ async def guess(_, message: Message):
         return
     game = game_state[message.chat.id]
     g = message.text.lower()
-    if g not in words_set:
+    if g not in valid_set:
         await message.reply('Not a valid english word!')
         return
 

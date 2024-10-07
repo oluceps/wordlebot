@@ -35,8 +35,8 @@ async def app_group(apps: list[Client]):
 
 
 class Wordle:
-    guess_list = get_words('hiwordlebot')
-    valid_set = set(get_words('official'))
+    guess_list = get_words('coca_derivative_2000')
+    valid_set = set(get_words('all_valid'))
 
     def __init__(self):
         self.word = random.choice(self.guess_list)

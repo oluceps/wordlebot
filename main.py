@@ -45,14 +45,15 @@ class Wordle:
 
     def guess(self, g):
         g = g.lower()
+        if not self.is_valid(g):
+            return
         if g == self.word:
             self.won = True
-        else:
-            if g not in self.valid_set:
-                return False
         row = np.hstack([letters[ord(gi) - 97][(gi in self.word) + (gi == wi)] for gi, wi in zip(g, self.word)])
         self._current_pic = row if self._current_pic is None else np.vstack([self._current_pic, row])
-        return True
+
+    def is_valid(self, g):
+        return g in self.valid_set
 
     @property
     def current_pic(self):
@@ -104,6 +105,9 @@ async def guess(_, message: Message):
     if message.chat.id not in game_state:
         return
     game = game_state[message.chat.id]
+    if not game.is_valid(guess_word := message.text.lower()):
+        await message.reply('Not a valid english word!')
+        return
 
     image = io.BytesIO()
     already_won = game.won
@@ -111,10 +115,7 @@ async def guess(_, message: Message):
     if already_won:
         await message.reply('Already solved. You can play /new Wordle or /share tiles with friends.')
     else:
-        valid = game.guess(message.text)
-        if not valid:
-            await message.reply('Not a valid english word!')
-            return
+        game.guess(guess_word)
         success = game.won
     game.current_pic.save(image, format='PNG')
     image.name = "wordle.png"

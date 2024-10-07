@@ -36,6 +36,7 @@ async def app_group(apps: list[Client]):
 
 class Wordle:
     guess_list = get_words('hiwordlebot')
+    valid_set = set(get_words('official'))
 
     def __init__(self):
         self.word = random.choice(self.guess_list)
@@ -43,10 +44,15 @@ class Wordle:
         self.won = False
 
     def guess(self, g):
+        g = g.lower()
         if g == self.word:
             self.won = True
+        else:
+            if g not in self.valid_set:
+                return False
         row = np.hstack([letters[ord(gi) - 97][(gi in self.word) + (gi == wi)] for gi, wi in zip(g, self.word)])
         self._current_pic = row if self._current_pic is None else np.vstack([self._current_pic, row])
+        return True
 
     @property
     def current_pic(self):
@@ -63,8 +69,6 @@ DISABLED = object()
 letters = np.array(Image.open('letters.png'))
 empty = np.hstack([letters[:SIZE, -SIZE:]] * 5)
 letters = [[letters[i:i + SIZE, j:j + SIZE] for j in range(0, SIZE * 3, SIZE)] for i in range(0, SIZE * 26, SIZE)]
-
-valid_set = set(get_words('official'))
 
 with open('config.json') as f:
     config = json.load(f)
@@ -100,10 +104,6 @@ async def guess(_, message: Message):
     if message.chat.id not in game_state:
         return
     game = game_state[message.chat.id]
-    g = message.text.lower()
-    if g not in valid_set:
-        await message.reply('Not a valid english word!')
-        return
 
     image = io.BytesIO()
     already_won = game.won
@@ -111,7 +111,10 @@ async def guess(_, message: Message):
     if already_won:
         await message.reply('Already solved. You can play /new Wordle or /share tiles with friends.')
     else:
-        game.guess(g)
+        valid = game.guess(message.text)
+        if not valid:
+            await message.reply('Not a valid english word!')
+            return
         success = game.won
     game.current_pic.save(image, format='PNG')
     image.name = "wordle.png"

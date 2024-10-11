@@ -87,7 +87,7 @@ def enabled_filter(_, __, m):
 
 @filters.create
 def word_filter(_, __, m):
-    return len(m.text) == 5 and m.text[0] != '/'
+    return len(m.text) == 5 and m.text[0] != '/' and bool(re.match(r'^[a-zA-Z]+$', m.text))
 
 
 word_filter = filters.text & word_filter
